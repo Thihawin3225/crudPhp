@@ -10,11 +10,25 @@ if($_POST){
     $desc = $_POST['desc'];
     $created_at = $_POST['created_at'];
     $id = $_GET['id'];
-    $stmt = $pdo->prepare("UPDATE post SET title='$title',description='$desc',created_at='$created_at' WHERE id=$id");
-   $result = $stmt->execute();
-    if($result){
-        echo "<script>alert('Update is Successful')</script>";
+
+    if($_FILES){
+      $targetFile = 'images/'.$_FILES['file']['name'];
+      $filepath = pathinfo($targetFile,PATHINFO_EXTENSION);
+      if($filepath != 'jpg' && $filepath != 'PNG'){
+        echo "<script>alert('image must be jpg or png or git')</script>";
+      }else{
+        move_uploaded_file($_FILES['file']['tmp_name'],$targetFile);
+        $stmt = $pdo->prepare("UPDATE post SET title='$title',description='$desc',created_at='$created_at',image='$targetFile' WHERE id=$id");
+        $result = $stmt->execute();
+      }
+    }else{
+      $stmt = $pdo->prepare("UPDATE post SET title='$title',description='$desc',created_at='$created_at' WHERE id=$id");
+    $result = $stmt->execute();
     }
+    if($result){
+      echo "<script>alert('Update is Successful')</script>";
+  }
+    
 }
 ?>
 
@@ -51,7 +65,7 @@ $row = $stmt->fetchAll();
 // exit();
 ?>
 <div class="container">
-    <form action="" method="post">
+    <form action="" method="post" enctype="multipart/form-data">
       <div class="mb-3">
         <label class="form-label">Title</label>
         <input type="text" class="form-control" value="<?php echo $row[0]['title'] ?>" name="title" placeholder="Enter Your Title">
@@ -61,8 +75,14 @@ $row = $stmt->fetchAll();
         <input type="text" value="<?php echo $row[0]['description'] ?>" class="form-control" name="desc" placeholder="Enter Your Description">
       </div>
       <div class="mb-3">
+        <img src="<?php echo $row[0]['image'] ?>">
+        <label class="form-label">File</label>
+        <input type="file" class="form-control" name="file">
+      </div>
+      <div class="mb-3">
         <label class="form-label">Date</label>
-        <input type="date" value="<?php echo $row[0]['created_at'] ?>" name="created_at" class="form-control">
+        <input type="date" value="<?php echo $row[0]['created_at'] 
+        ?>" name="created_at" class="form-control">
       </div>
       <div class="mb-3">
         <button type="submit" class="btn btn-info">Update</button>

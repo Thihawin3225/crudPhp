@@ -7,20 +7,30 @@ if(empty($_SESSION['$user_id']) || empty($_SESSION['loginTime'])){
 }
 
     if(!empty($_POST)){
-      $title = $_POST['title'];
-      $desc = $_POST['desc'];
-      $created_at = $_POST['created_at'];
-      $sql = "INSERT into post(title,description,created_at) values(:title,:description,:created_at)";
-      $stmt = $pdo->prepare($sql);  
-      $result = $stmt->execute(
-        array(
-            ':title'=>$title,':description'=>$desc,':created_at'=>$created_at
-        )
-        );
-      if($result){
-        echo "<script>alert('Record is Added')</script>";
+  
+      $targetFile = 'images/'.$_FILES['file']['name'];
+      $filepath = pathinfo($targetFile,PATHINFO_EXTENSION);
+      if($filepath != 'jpg' && $filepath != 'PNG'){
+        echo "<script>alert('image must be jpg or png or git')</script>";
+      }else{
+        move_uploaded_file($_FILES['file']['tmp_name'],$targetFile);
+        $title = $_POST['title'];
+        $desc = $_POST['desc'];
+        $created_at = $_POST['created_at'];
+        $sql = "INSERT into post(title,description,created_at,image) values(:title,:description,:created_at,:image)";
+        $stmt = $pdo->prepare($sql);  
+        $result = $stmt->execute(
+          array(
+              ':title'=>$title,':description'=>$desc,':created_at'=>$created_at,':image'=>$targetFile
+          )
+          );
+        if($result){
+          echo "<script>alert('Record is Added')</script>";
+        }
       }
     }
+
+    
 ?>
 
 <!DOCTYPE html>
@@ -50,7 +60,7 @@ if(empty($_SESSION['$user_id']) || empty($_SESSION['loginTime'])){
 <body>
 
 <div class="container">
-    <form action="add.php" method="post">
+    <form action="add.php" method="post" enctype="multipart/form-data">
       <div class="mb-3">
         <label class="form-label">Title</label>
         <input type="text" class="form-control" name="title" placeholder="Enter Your Title">
@@ -58,6 +68,10 @@ if(empty($_SESSION['$user_id']) || empty($_SESSION['loginTime'])){
       <div class="mb-3">
         <label class="form-label">Description</label>
         <input type="text" class="form-control" name="desc" placeholder="Enter Your Description">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">File</label>
+        <input type="file" class="form-control" name="file">
       </div>
       <div class="mb-3">
         <label class="form-label">Date</label>
